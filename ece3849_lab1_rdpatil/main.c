@@ -34,9 +34,17 @@
 #include "Crystalfontz128x128_ST7735.h"
 #include <stdio.h>
 #include "buttons.h"
+#include <math.h>
+#include "inc/hw_memmap.h"
+#include "driverlib/gpio.h"
+#include "driverlib/pwm.h"
+#include "driverlib/pin_map.h"
+#define PWM_FREQUENCY 20000 // PWM frequency = 20 kHz
 
 uint32_t gSystemClock; // [Hz] system clock frequency - global variable
 volatile uint32_t gTime = 8345; // time in hundredths of a second
+
+void signal_init();
 
 int main(void){
 
@@ -50,6 +58,7 @@ int main(void){
     // Initialize the system clock to 120 MHz - How does this work?
     gSystemClock = SysCtlClockFreqSet(SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN | SYSCTL_USE_PLL | SYSCTL_CFG_VCO_480, 120000000);
 
+    signal_init();
     Crystalfontz128x128_Init(); // Initialize the LCD display driver
     Crystalfontz128x128_SetOrientation(LCD_ORIENTATION_UP);// set screen orientation
 
@@ -80,4 +89,24 @@ int main(void){
         GrStringDraw(&sContext, str, /*length*/ -1, /*x*/ 0, /*y*/ 0, /*opaque*/ false);
         GrFlush(&sContext); // flush the frame buffer to the LCD
     }
+}
+
+void signal_init(){
+    // configure M0PWM2, at GPIO PF2, BoosterPack 1 header C1pin 2
+    // configure M0PWM3, at GPIO PF3, BoosterPack 1 header C1 pin 3
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+    GPIOPinTypePWM(GPIO_PORTF_BASE, GPIO_PIN_2 | GPIO_PIN_3);
+    GPIOPinConfigure(GPIO_PF2_M0PWM2);
+    GPIOPinConfigure(GPIO_PF3_M0PWM3);
+    GPIOPadConfigSet(GPIO_PORTF_BASE, GPIO_PIN_2 | GPIO_PIN_3,GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD);
+
+    // configure the PWM0 peripheral, gen 1,outputs 2 and 3
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0);
+    PWMClockSet(PWM0_BASE, PWM_SYSCLK_DIV_1);// use system clock without division
+    PWMGenConfigure(PWM0_BASE, PWM_GEN_1, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC);
+    PWMGenPeriodSet(PWM0_BASE, PWM_GEN_1, roundf((float)gSystemClock/PWM_FREQUENCY));
+    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_2, roundf((float)gSystemClock/PWM_FREQUENCY*0.4f));
+    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_3, roundf((float)gSystemClock/PWM_FREQUENCY*0.4f));
+    PWMOutputState(PWM0_BASE, PWM_OUT_2_BIT | PWM_OUT_3_BIT, true);
+    PWMGenEnable(PWM0_BASE, PWM_GEN_1);
 }
