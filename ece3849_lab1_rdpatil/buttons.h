@@ -16,6 +16,9 @@
 #define BUTTON_AND_JOYSTICK_COUNT 9 // number of buttons including joystick directions
 #define BUTTON_SAMPLES_PRESSED 2	// number of samples before a button is considered pressed
 #define BUTTON_SAMPLES_RELEASED 5	// number of samples before a button is considered released
+#define FIFO_SIZE 10       // FIFO capacity is 1 item fewer
+typedef char DataType;      // FIFO data type
+volatile DataType fifo[FIFO_SIZE];
 // counter value indicating button pressed state
 #define BUTTON_PRESSED_STATE (BUTTON_SAMPLES_RELEASED*BUTTON_SAMPLES_PRESSED)
 #define BUTTON_STATE_INCREMENT (BUTTON_PRESSED_STATE/BUTTON_SAMPLES_PRESSED)
@@ -53,5 +56,9 @@ void ButtonReadJoystick(void);
 uint32_t ButtonAutoRepeat(void);
 
 long decimalToBinary(int decimalNum);
+
+int fifo_put(DataType data);
+
+int fifo_get(DataType *data);
 
 #endif /* BUTTONS_H_ */

@@ -11,6 +11,7 @@ C_SRCS += \
 ../HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.c \
 ../buttons.c \
 ../main.c \
+../sampling.c \
 ../sysctl_pll.c \
 ../tm4c1294ncpdt_startup_ccs.c 
 
@@ -19,6 +20,7 @@ C_DEPS += \
 ./HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.d \
 ./buttons.d \
 ./main.d \
+./sampling.d \
 ./sysctl_pll.d \
 ./tm4c1294ncpdt_startup_ccs.d 
 
@@ -27,6 +29,7 @@ OBJS += \
 ./HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.obj \
 ./buttons.obj \
 ./main.obj \
+./sampling.obj \
 ./sysctl_pll.obj \
 ./tm4c1294ncpdt_startup_ccs.obj 
 
@@ -35,6 +38,7 @@ OBJS__QUOTED += \
 "HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.obj" \
 "buttons.obj" \
 "main.obj" \
+"sampling.obj" \
 "sysctl_pll.obj" \
 "tm4c1294ncpdt_startup_ccs.obj" 
 
@@ -43,6 +47,7 @@ C_DEPS__QUOTED += \
 "HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.d" \
 "buttons.d" \
 "main.d" \
+"sampling.d" \
 "sysctl_pll.d" \
 "tm4c1294ncpdt_startup_ccs.d" 
 
@@ -51,6 +56,7 @@ C_SRCS__QUOTED += \
 "../HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.c" \
 "../buttons.c" \
 "../main.c" \
+"../sampling.c" \
 "../sysctl_pll.c" \
 "../tm4c1294ncpdt_startup_ccs.c" 
 

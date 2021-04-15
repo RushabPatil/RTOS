@@ -29,6 +29,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "driverlib/fpu.h"
+#include "driverlib/timer.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/interrupt.h"
 #include "Crystalfontz128x128_ST7735.h"
@@ -39,10 +40,20 @@
 #include "driverlib/gpio.h"
 #include "driverlib/pwm.h"
 #include "driverlib/pin_map.h"
+#include "sampling.h"
+#include "Crystalfontz128x128_ST7735.h"
+
+
 #define PWM_FREQUENCY 20000 // PWM frequency = 20 kHz
 
 uint32_t gSystemClock; // [Hz] system clock frequency - global variable
 volatile uint32_t gTime = 8345; // time in hundredths of a second
+extern volatile uint16_t localBuffer[];
+uint32_t count_loaded;
+uint32_t count_unloaded;
+float cpu_load;
+
+float fScale = (VIN_RANGE * PIXELS_PER_DIV)/((1 << ADC_BITS) * fVoltsPerDiv);
 
 void signal_init();
 
@@ -59,15 +70,29 @@ int main(void){
     gSystemClock = SysCtlClockFreqSet(SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN | SYSCTL_USE_PLL | SYSCTL_CFG_VCO_480, 120000000);
 
     signal_init();
+
     Crystalfontz128x128_Init(); // Initialize the LCD display driver
     Crystalfontz128x128_SetOrientation(LCD_ORIENTATION_UP);// set screen orientation
 
+    ADCInit();
     ButtonInit();
+
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER3);
+    TimerDisable(TIMER3_BASE, TIMER_BOTH);
+    TimerConfigure(TIMER3_BASE, TIMER_CFG_ONE_SHOT);
+    TimerLoadSet(TIMER3_BASE, TIMER_A, (float)gSystemClock/50 - 0.5);
+
+    count_unloaded = CpuLoadCalc();
+
+
     IntMasterEnable();
+
 
     tContext sContext; // declare tContext variable for initializing grlib - graphics library
     GrContextInit(&sContext, &g_sCrystalfontz128x128); // Initialize the grlib graphics context
     GrContextFontSet(&sContext, &g_sFontFixed6x8); // select font
+
+
 
     uint32_t time;  // local copy of gTime
     char str[50];   // string buffer
@@ -82,11 +107,28 @@ int main(void){
         time = gTime; // read shared global only once
         snprintf(str, sizeof(str), "Time = %02u:%02u:%02u\n", time/6000, (time%6000)/100, time%100); // convert time to string
         GrContextForegroundSet(&sContext, ClrYellow); // yellow text
-        GrStringDraw(&sContext, str, /*length*/ -1, /*x*/ 0, /*y*/ 50, /*opaque*/ false);
+        //GrStringDraw(&sContext, str, /*length*/ -1, /*x*/ 0, /*y*/ 50, /*opaque*/ false);
 
-        snprintf(str, sizeof(str), "buttons = %09u", decimalToBinary(gButtons) );
+        int x = 0;
+           x = RisingTrigger();
+           CopyWaveform(x);
+
+           int i = 0;
+           //draw the waveform
+           for(;i < Lcd_ScreenWidth -1; i++){
+               int y = LCD_VERTICAL_MAX/2 -(int)roundf(fScale * ((int)localBuffer[i] -ADC_OFFSET));
+               int y2 = LCD_VERTICAL_MAX/2 -(int)roundf(fScale * ((int)localBuffer[i+1] -ADC_OFFSET));
+               GrLineDraw(&sContext, i, y, i+1, y2);
+           }
+
+        count_loaded = CpuLoadCalc();
+
+        cpu_load = 1.0f - (float)count_loaded/count_unloaded;
+
+
+        snprintf(str, sizeof(str), "CPU Load = %0.1f%% ", cpu_load*100 );
         GrContextForegroundSet(&sContext, ClrYellow); // yellow text
-        GrStringDraw(&sContext, str, /*length*/ -1, /*x*/ 0, /*y*/ 0, /*opaque*/ false);
+        GrStringDraw(&sContext, str, /*length*/ -1, /*x*/ 0, /*y*/ 110, /*opaque*/ false);
         GrFlush(&sContext); // flush the frame buffer to the LCD
     }
 }
@@ -110,3 +152,5 @@ void signal_init(){
     PWMOutputState(PWM0_BASE, PWM_OUT_2_BIT | PWM_OUT_3_BIT, true);
     PWMGenEnable(PWM0_BASE, PWM_GEN_1);
 }
+
+
