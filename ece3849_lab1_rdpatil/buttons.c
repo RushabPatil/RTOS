@@ -197,7 +197,8 @@ void ButtonISR(void) {
     }
 
     if (presses & 2) { // EK-TM4C1294XL button 1 pressed
-         fifo_put("A");
+        static char c = 'A';
+        fifo_put(c);
         }
 
     if (running) {

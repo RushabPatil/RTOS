@@ -19,6 +19,7 @@ volatile int32_t gADCBufferIndex = ADC_BUFFER_SIZE -1; // latest sample index
 volatile uint16_t gADCBuffer[ADC_BUFFER_SIZE];          // circular buffer
 volatile uint32_t gADCErrors= 0;
 volatile uint16_t localBuffer[ADC_BUFFER_SIZE];          // circular buffer
+extern volatile uint32_t rising;
 
 
 void ADCInit(){
@@ -77,8 +78,14 @@ int RisingTrigger(void)        //search for rising edge trigger
 
     for (; x > x_stop; x--)
     {
-        if(gADCBuffer[ADC_BUFFER_WRAP(x)] >= ADC_OFFSET && gADCBuffer[ADC_BUFFER_WRAP(x-1)] < ADC_OFFSET)
-            break;
+        if (rising == 0){
+            if(gADCBuffer[ADC_BUFFER_WRAP(x)] >= ADC_OFFSET && gADCBuffer[ADC_BUFFER_WRAP(x-1)] < ADC_OFFSET)
+                break;
+        }else {
+        if(gADCBuffer[ADC_BUFFER_WRAP(x)] <= ADC_OFFSET && gADCBuffer[ADC_BUFFER_WRAP(x-1)] > ADC_OFFSET)
+                        break;
+        }
+
     }
     if (x == x_stop) // for loop ran to the end
         x = gADCBufferIndex - Lcd_ScreenWidth/2; // reset x back to how it was initialized
@@ -86,25 +93,7 @@ int RisingTrigger(void)        //search for rising edge trigger
 
 }
 
-/**finds the index of the falling edge
- * Returns the index value
- */
-int FallingTrigger(void)        //search for rising edge trigger
-{
-    int x = gADCBufferIndex - Lcd_ScreenWidth/2;//half screen width
 
-    int x_stop = x - ADC_BUFFER_SIZE/2;
-
-    for (; x > x_stop; x--)
-    {
-        if(gADCBuffer[ADC_BUFFER_WRAP(x)] >= ADC_OFFSET && gADCBuffer[ADC_BUFFER_WRAP(x-1)] < ADC_OFFSET)
-            break;
-    }
-    if (x == x_stop) // for loop ran to the end
-        x = gADCBufferIndex - Lcd_ScreenWidth/2; // reset x back to how it was initialized
-    return x;
-
-}
 
 /** Copies waveform in the local buffer
  */

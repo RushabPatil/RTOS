@@ -25,7 +25,6 @@
 void ADCInit(void);
 void ADC_ISR(void);
 int RisingTrigger(void);
-int FallingTrigger(void);
 void CopyWaveform(int triggerIndex);
 uint32_t CpuLoadCalc(void);
 

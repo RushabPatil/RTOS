@@ -52,6 +52,7 @@ extern volatile uint16_t localBuffer[];
 uint32_t count_loaded;
 uint32_t count_unloaded;
 float cpu_load;
+uint32_t rising = 0;
 
 float fScale = (VIN_RANGE * PIXELS_PER_DIV)/((1 << ADC_BITS) * fVoltsPerDiv);
 
@@ -102,6 +103,9 @@ int main(void){
     //long gButtonsBinary = decimalToBinary(gButtons);
 
     while (true) {
+
+        //drawing grid
+
         GrContextForegroundSet(&sContext, ClrBlack);
         GrRectFill(&sContext, &rectFullScreen); // fill screen with black
         time = gTime; // read shared global only once
@@ -125,10 +129,49 @@ int main(void){
 
         cpu_load = 1.0f - (float)count_loaded/count_unloaded;
 
+        snprintf(str, sizeof(str), "CPU Load = %0.1f%%", cpu_load*100);
 
-        snprintf(str, sizeof(str), "CPU Load = %0.1f%% ", cpu_load*100 );
+        GrContextForegroundSet(&sContext, ClrYellow); // yellow text
+        GrStringDraw(&sContext, str, /*length*/ -1, /*x*/ 0, /*y*/ 10, /*opaque*/ false);
+
+        char c;
+        while(fifo_get(&c)){
+            rising = ~rising;
+            GrStringDraw(&sContext, &c, 1, 0, 30, false);
+        }
+
+        //
+        if(rising == 0){
+            snprintf(str, sizeof(str), "20 us 1V Rising");
+        }
+        else{
+            snprintf(str, sizeof(str), "20 us 1V Falling");
+        }
+
+
+        //
         GrContextForegroundSet(&sContext, ClrYellow); // yellow text
         GrStringDraw(&sContext, str, /*length*/ -1, /*x*/ 0, /*y*/ 110, /*opaque*/ false);
+
+        GrContextForegroundSet(&sContext, ClrBlue); // yellow text
+        int x_temp = 0;
+        int y_temp = 0;
+        for(; x_temp < 120; x_temp = x_temp + 20){
+
+          GrLineDraw(&sContext,x_temp, 0, x_temp, 128);
+           }
+        for(; y_temp < 120; y_temp = y_temp + 20){
+
+          GrLineDraw(&sContext,0, y_temp, 128, y_temp);
+
+           }
+
+
+
+       // GrStringDraw(&sContext, str, /*length*/ -1, /*x*/ 0, /*y*/ 10, /*opaque*/ false);
+
+
+
         GrFlush(&sContext); // flush the frame buffer to the LCD
     }
 }
