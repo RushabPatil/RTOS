@@ -70,28 +70,10 @@ void ADC_ISR(void)
 /**finds the index of the rising edge
  * Returns the index value
  */
-int RisingTrigger(void)        //search for rising edge trigger
-{
-    int x = gADCBufferIndex - Lcd_ScreenWidth/2;//half screen width
 
-    int x_stop = x - ADC_BUFFER_SIZE/2;
 
-    for (; x > x_stop; x--)
-    {
-        if (rising == 0){
-            if(gADCBuffer[ADC_BUFFER_WRAP(x)] >= ADC_OFFSET && gADCBuffer[ADC_BUFFER_WRAP(x-1)] < ADC_OFFSET)
-                break;
-        }else {
-        if(gADCBuffer[ADC_BUFFER_WRAP(x)] <= ADC_OFFSET && gADCBuffer[ADC_BUFFER_WRAP(x-1)] > ADC_OFFSET)
-                        break;
-        }
 
-    }
-    if (x == x_stop) // for loop ran to the end
-        x = gADCBufferIndex - Lcd_ScreenWidth/2; // reset x back to how it was initialized
-    return x;
 
-}
 
 
 
