@@ -43,15 +43,61 @@ void task0_func(UArg arg1, UArg arg2)
 }
 
 
+//highest priority
+/**
+ * @brief 
+ * 
+ * @param arg1 
+ * @param arg2 
+ */
 void waveformTask_func(UArg arg1, UArg arg2)
 {
 }
 
 
+//high priority
+/**
+ * @brief 
+ * 
+ * @param arg1 
+ * @param arg2 
+ */
+void buttonTask_func(UArg arg1, UArg arg2)
+{
+
+}
+
+//mid priority
+/**
+ * @brief 
+ * 
+ * @param arg1 
+ * @param arg2 
+ */
+void userInputTask_func(UArg arg1, UArg arg2)
+{
+}
+
+
+//low priority
+/**
+ * @brief 
+ * 
+ * @param arg1 
+ * @param arg2 
+ */
 void displayTask_func(UArg arg1, UArg arg2)
 {
 }
 
+//lowest priority
+/**
+ * @brief 
+ * 
+ * @param arg1 
+ * @param arg2 
+ */
 void processingTask_func(UArg arg1, UArg arg2)
 {
 }
+
